@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { createObserveModule } from '@nestjs/observe';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { BudgetsModule } from './budgets/budgets.module';
+import { SavingsGoalsModule } from './savings-goals/savings-goals.module';
+import { FinancialSummaryModule } from './financial-summary/financial-summary.module';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -14,6 +17,9 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       appSecret: 'YOUR_APP_SECRET',
       serviceId: 'fluxa-nest.js',
     }),
+    BudgetsModule,
+    SavingsGoalsModule,
+    FinancialSummaryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
