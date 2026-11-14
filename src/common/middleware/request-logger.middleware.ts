@@ -1,0 +1,23 @@
+import { Logger } from '@nestjs/common';
+import type { NextFunction, Request, Response } from 'express';
+
+const logger = new Logger('HTTP');
+
+/**
+ * Middleware que registra cada petición al terminar la respuesta:
+ * `MÉTODO ruta estado Nms`. Usa nivel error (>=500), warn (>=400) o log.
+ */
+export function requestLogger(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  const start = Date.now();
+  res.on('finish', () => {
+    const message = `${req.method} ${req.originalUrl} ${res.statusCode} ${Date.now() - start}ms`;
+    if (res.statusCode >= 500) logger.error(message);
+    else if (res.statusCode >= 400) logger.warn(message);
+    else logger.log(message);
+  });
+  next();
+}
