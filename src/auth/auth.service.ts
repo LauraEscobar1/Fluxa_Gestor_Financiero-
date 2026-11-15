@@ -1,5 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { DataSource } from 'typeorm';
+import { CategoriesService } from '../categories/categories.service';
 import { verifyPassword } from '../common/password';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
@@ -24,15 +26,23 @@ const DUMMY_PASSWORD_HASH =
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
+    private readonly categoriesService: CategoriesService,
     private readonly jwtService: JwtService,
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
-   * Crea la cuenta y devuelve un token para no tener que hacer login después.
+   * Crea la cuenta con sus categorías por defecto y devuelve un token para no
+   * tener que hacer login después. Usuario y categorías se guardan en una
+   * misma transacción: si algo falla, no queda una cuenta a medias.
    * @throws ConflictException si el email ya está registrado.
    */
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
-    const user = await this.usersService.create(dto);
+    const user = await this.dataSource.transaction(async (manager) => {
+      const created = await this.usersService.create(dto, manager);
+      await this.categoriesService.createDefaultsForUser(created.id, manager);
+      return created;
+    });
     return this.buildAuthResponse(user);
   }
 
