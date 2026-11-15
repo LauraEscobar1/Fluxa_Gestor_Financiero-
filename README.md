@@ -51,13 +51,13 @@ Se definen en `.env` (ver `.env.example`).
 | `DB_NAME` | Nombre de la base de datos | `fluxa_db` |
 | `DB_SYNCHRONIZE` | Sincroniza tablas con las entidades (**solo desarrollo**) | `true` |
 | `DB_MIGRATIONS_RUN` | Ejecuta migraciones al iniciar | `false` |
+| `JWT_SECRET` | Secreto para firmar los tokens (**obligatorio**, la API no arranca sin él; cámbialo) | — |
+| `JWT_EXPIRES_IN` | Duración del token (`15m`, `1h`, `7d` o segundos) | `1h` |
 | `PGADMIN_EMAIL` | Usuario de pgAdmin | `admin@fluxa.com` |
 | `PGADMIN_PASSWORD` | Contraseña de pgAdmin | `admin123` |
 | `PGADMIN_PORT` | Puerto de pgAdmin | `5050` |
 | `THROTTLE_TTL_MS` | Ventana del límite de peticiones (ms) | `60000` |
 | `THROTTLE_LIMIT` | Peticiones máximas por ventana | `100` |
-
-> Las variables `JWT_*` se agregarán junto con el módulo de autenticación.
 
 ## Scripts
 
