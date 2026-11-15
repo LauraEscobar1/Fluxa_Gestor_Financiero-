@@ -2,6 +2,8 @@ import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { CategoriesService } from '../categories/categories.service';
 import { hashPassword } from '../common/password';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
@@ -29,6 +31,15 @@ describe('AuthService', () => {
     createQueryBuilder: jest.fn(() => queryBuilder),
   };
 
+  // `manager` simulado: `getRepository` devuelve el repositorio de usuarios.
+  const manager = { getRepository: jest.fn(() => repository) };
+  const dataSource = {
+    transaction: jest.fn(
+      async (work: (m: typeof manager) => Promise<unknown>) => work(manager),
+    ),
+  };
+  const categoriesService = { createDefaultsForUser: jest.fn() };
+
   const registerDto = {
     name: 'Ana',
     email: 'ana@example.com',
@@ -55,6 +66,8 @@ describe('AuthService', () => {
         AuthService,
         UsersService,
         { provide: getRepositoryToken(User), useValue: repository },
+        { provide: CategoriesService, useValue: categoriesService },
+        { provide: DataSource, useValue: dataSource },
       ],
     }).compile();
     service = moduleRef.get(AuthService);
@@ -76,6 +89,31 @@ describe('AuthService', () => {
       expect(payload.exp! - payload.iat!).toBe(3600);
     });
 
+    it('crea las categorías por defecto del nuevo usuario en la misma transacción', async () => {
+      repository.existsBy.mockResolvedValue(false);
+
+      await service.register(registerDto);
+
+      expect(dataSource.transaction).toHaveBeenCalledTimes(1);
+      expect(categoriesService.createDefaultsForUser).toHaveBeenCalledWith(
+        7,
+        manager,
+      );
+    });
+
+    it('si fallan las categorías el registro falla y no se emite token', async () => {
+      repository.existsBy.mockResolvedValue(false);
+      categoriesService.createDefaultsForUser.mockRejectedValueOnce(
+        new Error('fallo al insertar'),
+      );
+      const signSpy = jest.spyOn(jwtService, 'signAsync');
+
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'fallo al insertar',
+      );
+      expect(signSpy).not.toHaveBeenCalled();
+    });
+
     it('lanza 409 si el email ya existe', async () => {
       repository.existsBy.mockResolvedValue(true);
 
@@ -83,6 +121,7 @@ describe('AuthService', () => {
         ConflictException,
       );
       expect(repository.save).not.toHaveBeenCalled();
+      expect(categoriesService.createDefaultsForUser).not.toHaveBeenCalled();
     });
   });
 
