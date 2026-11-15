@@ -53,6 +53,15 @@ Los PR siguientes lo implementan; no lo cambies sin avisar.
 - **Summary** (`/summary`): solo lectura; agrega transacciones, presupuestos y metas del usuario.
 - **Auth**: JWT en el header `Authorization: Bearer <token>`; guard global con decorador `@Public()` para registro y login.
 
+## Autenticación en los módulos
+
+- `JwtAuthGuard` es **global** (`APP_GUARD` en `AuthModule`): toda ruta exige `Authorization: Bearer <token>` sin hacer nada. No añadas `@UseGuards` en los controladores.
+- Usuario actual: `@CurrentUser()` (`src/auth/decorators/current-user.decorator.ts`) devuelve el `User` sin `passwordHash`; `@CurrentUser('id') userId: number` devuelve solo el id. Pásalo al servicio para filtrar por `userId`.
+- `@Public()` (`src/auth/decorators/public.decorator.ts`) solo en rutas que deben funcionar sin sesión (hoy: `POST /auth/register` y `POST /auth/login`). Ningún endpoint de datos del usuario es público.
+- Controladores protegidos: `@ApiBearerAuth()` y `@ApiResponse({ status: 401 })`.
+- Contraseñas: `hashPassword` / `verifyPassword` de `src/common/password.ts` (bcrypt, cost 12); reglas de validación con `@IsValidPassword()`.
+- Tests e2e de rutas protegidas: registra `{ provide: APP_GUARD, useClass: JwtAuthGuard }` con `JwtModule.register({ secret })` y un `UsersService` simulado (ver `test/auth.e2e-spec.ts`).
+
 ## Comandos útiles
 
 ```bash
