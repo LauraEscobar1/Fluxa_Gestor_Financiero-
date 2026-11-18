@@ -78,3 +78,26 @@ export function IsOnOrAfterDate(
     options,
   );
 }
+
+/**
+ * Primer día del mes y primer día del mes siguiente como `YYYY-MM-DD`. Sirve
+ * para filtrar columnas `date` con `>= start` y `< end` (comparación de texto
+ * que aprovecha el índice).
+ */
+export function monthRange(
+  month: number,
+  year: number,
+): { start: string; end: string } {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const nextYear = month === 12 ? year + 1 : year;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  return {
+    start: `${year}-${pad(month)}-01`,
+    end: `${nextYear}-${pad(nextMonth)}-01`,
+  };
+}
+
+/** Primer día del año y primer día del siguiente como `YYYY-MM-DD`. */
+export function yearRange(year: number): { start: string; end: string } {
+  return { start: `${year}-01-01`, end: `${year + 1}-01-01` };
+}
