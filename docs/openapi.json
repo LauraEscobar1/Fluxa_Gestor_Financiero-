@@ -746,28 +746,179 @@
         ]
       }
     },
-    "/health": {
+    "/summary": {
       "get": {
-        "operationId": "HealthController_check",
-        "parameters": [],
+        "operationId": "FinancialSummaryController_getSummary",
+        "parameters": [
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "description": "Por defecto, el año actual (UTC)",
+            "schema": {
+              "minimum": 2000,
+              "maximum": 2100,
+              "example": 2026,
+              "type": "number"
+            }
+          },
+          {
+            "name": "month",
+            "required": false,
+            "in": "query",
+            "description": "Por defecto, el mes actual (UTC)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 12,
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "API y base de datos disponibles",
+            "description": "Resumen del mes",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HealthResponseDto"
+                  "$ref": "#/components/schemas/SummaryResponseDto"
                 }
               }
             }
           },
-          "503": {
-            "description": "La base de datos no responde"
+          "400": {
+            "description": "Mes o año inválidos"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
           }
         },
-        "summary": "Estado de la API y de la conexión a la base de datos",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Resumen de un mes (por defecto el actual): ingresos, gastos, balance, tasa de ahorro, presupuestos por estado y progreso de metas",
         "tags": [
-          "health"
+          "summary"
+        ]
+      }
+    },
+    "/summary/by-category": {
+      "get": {
+        "operationId": "FinancialSummaryController_getByCategory",
+        "parameters": [
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "description": "Por defecto, el año actual (UTC)",
+            "schema": {
+              "minimum": 2000,
+              "maximum": 2100,
+              "example": 2026,
+              "type": "number"
+            }
+          },
+          {
+            "name": "month",
+            "required": false,
+            "in": "query",
+            "description": "Por defecto, el mes actual (UTC)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 12,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Tipo de transacción a agrupar",
+            "schema": {
+              "default": "expense",
+              "type": "string",
+              "enum": [
+                "income",
+                "expense"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Totales por categoría",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SummaryByCategoryResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Mes, año o tipo inválidos"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Total y porcentaje por categoría de un mes, de mayor a menor (por defecto gastos)",
+        "tags": [
+          "summary"
+        ]
+      }
+    },
+    "/summary/monthly": {
+      "get": {
+        "operationId": "FinancialSummaryController_getMonthly",
+        "parameters": [
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "description": "Por defecto, el año actual (UTC)",
+            "schema": {
+              "minimum": 2000,
+              "maximum": 2100,
+              "example": 2026,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Evolución mensual del año",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonthlySummaryResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Año inválido"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ingresos, gastos y balance de los 12 meses de un año (por defecto el actual)",
+        "tags": [
+          "summary"
         ]
       }
     },
@@ -1198,6 +1349,31 @@
         "summary": "Historial paginado de movimientos (más reciente primero)",
         "tags": [
           "savings-goals"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "API y base de datos disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "La base de datos no responde"
+          }
+        },
+        "summary": "Estado de la API y de la conexión a la base de datos",
+        "tags": [
+          "health"
         ]
       }
     },
@@ -1907,16 +2083,268 @@
           "amount"
         ]
       },
-      "HealthResponseDto": {
+      "BudgetStatusCountDto": {
         "type": "object",
         "properties": {
-          "status": {
-            "type": "string",
-            "example": "ok"
+          "total": {
+            "type": "number",
+            "example": 3,
+            "description": "Presupuestos del mes"
+          },
+          "ok": {
+            "type": "number",
+            "example": 1
+          },
+          "warning": {
+            "type": "number",
+            "example": 1,
+            "description": "percentUsed >= 80 sin superar el límite"
+          },
+          "exceeded": {
+            "type": "number",
+            "example": 1,
+            "description": "spent > amount"
           }
         },
         "required": [
-          "status"
+          "total",
+          "ok",
+          "warning",
+          "exceeded"
+        ]
+      },
+      "SavingsGoalsProgressDto": {
+        "type": "object",
+        "properties": {
+          "totalSaved": {
+            "type": "number",
+            "example": 3800000,
+            "description": "Suma de currentAmount de todas las metas"
+          },
+          "totalTarget": {
+            "type": "number",
+            "example": 6500000,
+            "description": "Suma de targetAmount de todas las metas"
+          },
+          "active": {
+            "type": "number",
+            "example": 1,
+            "description": "Metas con currentAmount < targetAmount"
+          },
+          "completed": {
+            "type": "number",
+            "example": 1,
+            "description": "Metas con currentAmount >= targetAmount"
+          }
+        },
+        "required": [
+          "totalSaved",
+          "totalTarget",
+          "active",
+          "completed"
+        ]
+      },
+      "SummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1,
+            "maximum": 12
+          },
+          "year": {
+            "type": "number",
+            "example": 2026
+          },
+          "income": {
+            "type": "number",
+            "example": 4100000,
+            "description": "Suma de ingresos del mes"
+          },
+          "expenses": {
+            "type": "number",
+            "example": 2225000,
+            "description": "Suma de gastos del mes"
+          },
+          "balance": {
+            "type": "number",
+            "example": 1875000,
+            "description": "income - expenses (negativo si se gastó más de lo ingresado)"
+          },
+          "savingsRate": {
+            "type": "number",
+            "example": 45.73,
+            "description": "balance / income * 100, redondeado a 2 decimales; 0 si no hay ingresos. Negativo si los gastos superan a los ingresos"
+          },
+          "budgets": {
+            "$ref": "#/components/schemas/BudgetStatusCountDto"
+          },
+          "savingsGoals": {
+            "$ref": "#/components/schemas/SavingsGoalsProgressDto"
+          }
+        },
+        "required": [
+          "month",
+          "year",
+          "income",
+          "expenses",
+          "balance",
+          "savingsRate",
+          "budgets",
+          "savingsGoals"
+        ]
+      },
+      "CategorySummaryItemDto": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "number",
+            "example": 3
+          },
+          "name": {
+            "type": "string",
+            "example": "Vivienda"
+          },
+          "total": {
+            "type": "number",
+            "example": 1100000
+          },
+          "percentage": {
+            "type": "number",
+            "example": 49.44,
+            "description": "Porcentaje sobre el total del tipo, a 2 decimales; la suma de todas las categorías es exactamente 100"
+          }
+        },
+        "required": [
+          "categoryId",
+          "name",
+          "total",
+          "percentage"
+        ]
+      },
+      "SummaryByCategoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1,
+            "maximum": 12
+          },
+          "year": {
+            "type": "number",
+            "example": 2026
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "example": "expense"
+          },
+          "total": {
+            "type": "number",
+            "example": 2225000,
+            "description": "Suma de todas las categorías"
+          },
+          "categories": {
+            "description": "Solo categorías con movimientos, de mayor a menor total (empate: por nombre)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategorySummaryItemDto"
+            }
+          }
+        },
+        "required": [
+          "month",
+          "year",
+          "type",
+          "total",
+          "categories"
+        ]
+      },
+      "MonthlySummaryItemDto": {
+        "type": "object",
+        "properties": {
+          "income": {
+            "type": "number",
+            "example": 4100000
+          },
+          "expenses": {
+            "type": "number",
+            "example": 2225000
+          },
+          "balance": {
+            "type": "number",
+            "example": 1875000,
+            "description": "income - expenses"
+          },
+          "month": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1,
+            "maximum": 12
+          }
+        },
+        "required": [
+          "income",
+          "expenses",
+          "balance",
+          "month"
+        ]
+      },
+      "MonthlyTotalsDto": {
+        "type": "object",
+        "properties": {
+          "income": {
+            "type": "number",
+            "example": 4100000
+          },
+          "expenses": {
+            "type": "number",
+            "example": 2225000
+          },
+          "balance": {
+            "type": "number",
+            "example": 1875000,
+            "description": "income - expenses"
+          }
+        },
+        "required": [
+          "income",
+          "expenses",
+          "balance"
+        ]
+      },
+      "MonthlySummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "number",
+            "example": 2026
+          },
+          "months": {
+            "description": "Siempre 12 elementos (enero a diciembre); meses sin datos en 0",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonthlySummaryItemDto"
+            }
+          },
+          "totals": {
+            "description": "Totales del año",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MonthlyTotalsDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "year",
+          "months",
+          "totals"
         ]
       },
       "SavingsGoalResponseDto": {
@@ -2162,6 +2590,18 @@
           "total",
           "page",
           "limit"
+        ]
+      },
+      "HealthResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          }
+        },
+        "required": [
+          "status"
         ]
       },
       "TransactionCategoryDto": {
