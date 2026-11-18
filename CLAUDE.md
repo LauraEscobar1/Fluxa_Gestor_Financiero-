@@ -84,6 +84,14 @@ Los PR siguientes lo implementan; no lo cambies sin avisar.
 - **Montos**: `@IsNumber({ maxDecimalPlaces: 2 })`, `@IsPositive()` y `@Max(9_999_999_999.99)` (límite de `decimal(12,2)`).
 - **Enum compartido**: `Transaction.type` reutiliza `CategoryType` y el enum de Postgres `category_type` (mismo `enumName`).
 
+## Campos calculados (ver `src/budgets/`)
+
+- `spent`, `remaining`, `percentUsed` y `status` **no se guardan**: `BudgetsService` los calcula con las transacciones de gasto de la categoría y el mes.
+- **Sin N+1**: lo gastado de todos los presupuestos sale de UNA consulta agregada (`SUM` + `GROUP BY categoryId`) con `transaction.date >= primer día del mes` y `< primer día del siguiente` (comparación de texto `YYYY-MM-DD`). `BudgetsModule` usa `TypeOrmModule.forFeature([Transaction])`, no `TransactionsService`.
+- `status`: `exceeded` si `spent > amount`; si no, `warning` si `percentUsed >= 80` (ya redondeado a 2 decimales); si no, `ok`. `remaining` puede ser negativo.
+- `BudgetsService.getStatusForMonth(userId, month, year)` es el método público para otros módulos (resumen).
+- Mes y año por defecto: los actuales en UTC.
+
 ## Comandos útiles
 
 ```bash
