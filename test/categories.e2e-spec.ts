@@ -1,9 +1,14 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import {
+  ConflictException,
+  INestApplication,
+  ValidationPipe,
+} from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
+import { QueryFailedError } from 'typeorm';
 import { JwtAuthGuard } from '../src/auth/guards/jwt-auth.guard';
 import { CategoriesController } from '../src/categories/categories.controller';
 import { CategoriesService } from '../src/categories/categories.service';
@@ -243,6 +248,42 @@ describe('Categories (e2e)', () => {
 
       expect(res.body).toEqual({ message: 'ok' });
       expect(categoriesService.remove).toHaveBeenCalledWith(USER_ID, 5);
+    });
+
+    it('con transacciones asociadas → 409 con el mensaje del servicio', async () => {
+      categoriesService.remove.mockRejectedValue(
+        new ConflictException('La categoría tiene transacciones asociadas'),
+      );
+
+      const res = await request(app.getHttpServer())
+        .delete('/categories/5')
+        .set('Authorization', auth)
+        .expect(409);
+
+      expect(res.body).toMatchObject({
+        statusCode: 409,
+        error: 'CONFLICT',
+        message: 'La categoría tiene transacciones asociadas',
+        path: '/categories/5',
+      });
+    });
+
+    it('un 23503 sin capturar también llega al filtro como 409', async () => {
+      categoriesService.remove.mockRejectedValue(
+        new QueryFailedError('DELETE', [], {
+          code: '23503',
+        } as unknown as Error),
+      );
+
+      const res = await request(app.getHttpServer())
+        .delete('/categories/5')
+        .set('Authorization', auth)
+        .expect(409);
+
+      expect(res.body).toMatchObject({
+        statusCode: 409,
+        message: 'La operación viola una relación con otro registro',
+      });
     });
   });
 });

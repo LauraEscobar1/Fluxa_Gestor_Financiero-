@@ -71,7 +71,18 @@ Los PR siguientes lo implementan; no lo cambies sin avisar.
 - **DTO de update con un solo campo editable**: usa `PickType` (campo obligatorio) en lugar de `PartialType`, para que no admita `{}` ni `null`. Con varios campos editables usa `PartialType`, y evita que `null` llegue al servicio (valida con `@IsNotEmpty`/`@ValidateIf`).
 - **Enums de dominio**: enum de TypeScript exportado (`src/<modulo>/enums/`) + columna `type: 'enum'` con `enumName` explícito. `CategoryType` (`INCOME`/`EXPENSE`) se reutiliza en Transaction.
 - **Transacciones de BD**: si un servicio debe escribir junto con otro, el método acepta un `EntityManager` opcional (`manager?.getRepository(X) ?? this.repo`) y quien orquesta usa `DataSource.transaction(...)`. Ejemplo: `AuthService.register` crea usuario y categorías por defecto de forma atómica.
-- **Módulos**: un módulo que exporta un servicio usado por otro se importa en una sola dirección (`AuthModule` → `CategoriesModule`); los módulos de recursos **no** importan `AuthModule`.
+- **Módulos**: un módulo que exporta un servicio usado por otro se importa en una sola dirección (`AuthModule` → `CategoriesModule`, `TransactionsModule` → `CategoriesModule`); los módulos de recursos **no** importan `AuthModule`.
+- **Validar recursos relacionados**: se usa el `findOne(userId, id)` del servicio dueño (p. ej. `CategoriesService.findOne`), que ya lanza el 404 con su mensaje; no se inyecta el repositorio de otro módulo.
+
+## Fechas, relaciones y listados (ver `src/transactions/`)
+
+- **Fechas sin hora** (columna `type: 'date'`): propiedad `string` en formato `YYYY-MM-DD`, nunca `Date`. Se validan con `@IsDateOnly()` de `src/common/dates.ts` (rechaza `2026-02-30` y valores con hora). Para "hoy" y límites se usa el día UTC (`toDateOnly(new Date())`, `addYears`) y se comparan como texto.
+- **Rangos de fechas en query**: `from` y `to` opcionales e inclusivos; `to` lleva `@IsOnOrAfterDate('from')` para responder 400 si `from > to`.
+- **Relaciones en las respuestas**: sin `eager`. Se cargan con un QueryBuilder base (`innerJoin` + `addSelect` de los campos públicos, p. ej. categoría `id, name, type`) que comparten `findAll` y `findOne`; `create`/`update` releen con `findOne` para devolver siempre la misma forma.
+- **Paginación con joins ManyToOne**: `offset`/`limit` con `getManyAndCount()` (el join no duplica filas). Con OneToMany usa `skip`/`take`.
+- **PATCH con `PartialType`**: `PartialType(CreateXDto, { skipNullProperties: false })` para que `null` se valide y se rechace; los campos que admiten `null` (p. ej. `description`) llevan su propio `@IsOptional()`.
+- **Montos**: `@IsNumber({ maxDecimalPlaces: 2 })`, `@IsPositive()` y `@Max(9_999_999_999.99)` (límite de `decimal(12,2)`).
+- **Enum compartido**: `Transaction.type` reutiliza `CategoryType` y el enum de Postgres `category_type` (mismo `enumName`).
 
 ## Comandos útiles
 
