@@ -4,7 +4,9 @@ import {
   isDateOnly,
   IsDateOnly,
   IsOnOrAfterDate,
+  monthRange,
   toDateOnly,
+  yearRange,
 } from './dates';
 
 describe('dates', () => {
@@ -33,6 +35,21 @@ describe('dates', () => {
   it('addYears suma años y desborda el 29 de febrero', () => {
     expect(addYears('2026-06-15', 1)).toBe('2027-06-15');
     expect(addYears('2024-02-29', 1)).toBe('2025-03-01');
+  });
+
+  it('monthRange devuelve el primer día del mes y del siguiente', () => {
+    expect(monthRange(3, 2026)).toEqual({
+      start: '2026-03-01',
+      end: '2026-04-01',
+    });
+    expect(monthRange(12, 2026)).toEqual({
+      start: '2026-12-01',
+      end: '2027-01-01',
+    });
+  });
+
+  it('yearRange devuelve el primer día del año y del siguiente', () => {
+    expect(yearRange(2026)).toEqual({ start: '2026-01-01', end: '2027-01-01' });
   });
 
   describe('decoradores', () => {
