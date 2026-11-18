@@ -48,7 +48,7 @@ PostgreSQL
 - **Aislamiento por usuario:** todo recurso pertenece a un usuario (`userId`). Cada método de servicio recibe el `userId` del token y lo incluye en la consulta; un recurso ajeno es indistinguible de uno inexistente (**404**, nunca 403).
 - **Guard global:** `JwtAuthGuard` protege todas las rutas salvo las marcadas con `@Public()` (registro, login y `/health`).
 - **Filtro global de excepciones:** unifica el formato de errores y no filtra detalles internos en los 500.
-- **Campos calculados:** `spent`/`status` de presupuestos y `status`/`progressPercent` de metas no se guardan; se calculan en cada respuesta.
+- **Campos calculados:** `spent`/`status` de presupuestos, `status`/`progressPercent` de metas y todo `/summary` no se guardan; se calculan en cada respuesta.
 
 ## Estructura de carpetas
 
@@ -62,7 +62,7 @@ src/
 ├── transactions/              # ingresos y gastos
 ├── budgets/                   # presupuestos mensuales con gasto calculado
 ├── savings-goals/             # metas de ahorro, depósitos, retiros e historial
-├── financial-summary/         # módulo de resumen (/summary) — ver nota en Endpoints
+├── financial-summary/         # resumen del dashboard (/summary): agregados por mes, categoría y año
 ├── health/                    # GET /health
 ├── common/                    # filtro de errores, paginación, fechas, password, config, swagger
 ├── database/
@@ -301,7 +301,16 @@ Todos requieren token salvo los marcados como **Público**. Además de los códi
 
 ### Summary
 
-> **Pendiente:** el módulo `financial-summary` está registrado con el prefijo `/summary`, pero todavía **no expone ninguna ruta**. Cuando se implemente, usará `BudgetsService.getStatusForMonth` y `SavingsGoalsService`.
+Solo lectura. Todo se calcula con el `userId` del token (`SUM` + `GROUP BY` en Postgres). Mes y año por defecto: los actuales (UTC). `month` 1-12, `year` 2000-2100; cualquier otro valor o propiedad extra responde 400.
+
+| Método | Ruta | Acceso | Códigos | Descripción |
+|---|---|---|---|---|
+| GET | `/summary` | Token | 200, 400, 401 | Resumen del mes (`?month=&year=`): `income`, `expenses`, `balance`, `savingsRate`, presupuestos por estado (`ok`/`warning`/`exceeded`) y progreso de metas (`totalSaved`, `totalTarget`, `active`, `completed`) |
+| GET | `/summary/by-category` | Token | 200, 400, 401 | Total y porcentaje por categoría del mes, de mayor a menor (`?month=&year=&type=income\|expense`, por defecto `expense`) |
+| GET | `/summary/monthly` | Token | 200, 400, 401 | Ingresos, gastos y balance de los 12 meses del año (`?year=`), con los meses sin datos en 0, y los totales del año |
+
+- `savingsRate` = `balance / income * 100` (2 decimales); 0 si no hay ingresos y negativo si los gastos superan a los ingresos.
+- Los porcentajes por categoría tienen 2 decimales y suman exactamente 100 (método del mayor resto).
 
 ## Seguridad
 
