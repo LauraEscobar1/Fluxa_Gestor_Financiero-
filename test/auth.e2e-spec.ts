@@ -287,6 +287,54 @@ describe('Auth y Users (e2e)', () => {
         .expect(400);
       expect(usersService.changePassword).not.toHaveBeenCalled();
     });
+
+    it('PATCH /users/me válido → 200 con el id del token', async () => {
+      usersService.update.mockResolvedValue({ ...user, name: 'Ana María' });
+
+      const res = await request(app.getHttpServer())
+        .patch('/users/me')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'Ana María' })
+        .expect(200);
+
+      expect(res.body.name).toBe('Ana María');
+      expect(res.body).not.toHaveProperty('passwordHash');
+      expect(usersService.update).toHaveBeenCalledWith(1, {
+        name: 'Ana María',
+      });
+    });
+
+    it('PATCH /users/me/password válido → 200 con { message }', async () => {
+      const body = { currentPassword: 'Secreta123', newPassword: 'Nueva12345' };
+      usersService.changePassword.mockResolvedValue({
+        message: 'Contraseña actualizada correctamente',
+      });
+
+      const res = await request(app.getHttpServer())
+        .patch('/users/me/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send(body)
+        .expect(200);
+
+      expect(res.body).toEqual({
+        message: 'Contraseña actualizada correctamente',
+      });
+      expect(usersService.changePassword).toHaveBeenCalledWith(1, body);
+    });
+
+    it('DELETE /users/me → 200 y elimina solo la cuenta del token', async () => {
+      usersService.remove.mockResolvedValue({
+        message: 'Cuenta eliminada correctamente',
+      });
+
+      const res = await request(app.getHttpServer())
+        .delete('/users/me')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(res.body).toEqual({ message: 'Cuenta eliminada correctamente' });
+      expect(usersService.remove).toHaveBeenCalledWith(1);
+    });
   });
 });
 
