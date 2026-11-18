@@ -1,5 +1,6 @@
 import {
   INestApplication,
+  NotFoundException,
   UnauthorizedException,
   ValidationPipe,
 } from '@nestjs/common';
@@ -218,6 +219,66 @@ describe('Auth y Users (e2e)', () => {
       expect(res.body.id).toBe(1);
     });
 
+    it.each([
+      ['email null', { email: null }],
+      ['name null', { name: null }],
+      ['email vacío', { email: '' }],
+      ['propiedad extra', { name: 'Ana', password: 'Secreta123' }],
+    ])('PATCH /users/me con %s → 400', async (_label, body) => {
+      await request(app.getHttpServer())
+        .patch('/users/me')
+        .set('Authorization', `Bearer ${token}`)
+        .send(body)
+        .expect(400);
+      expect(usersService.update).not.toHaveBeenCalled();
+    });
+
+    it('esquema distinto de Bearer → 401', async () => {
+      await request(app.getHttpServer())
+        .get('/users/me')
+        .set('Authorization', `Basic ${token}`)
+        .expect(401);
+    });
+
+    it('token expirado → 401', async () => {
+      const expired = await new JwtService({ secret: JWT_SECRET }).signAsync(
+        { sub: user.id, email: user.email },
+        { expiresIn: -10 },
+      );
+
+      const res = await request(app.getHttpServer())
+        .get('/users/me')
+        .set('Authorization', `Bearer ${expired}`)
+        .expect(401);
+      expect(res.body.message).toBe('Token inválido o expirado');
+    });
+
+    it('token firmado con otro secreto → 401', async () => {
+      const forged = await new JwtService({ secret: 'otro-secreto' }).signAsync(
+        {
+          sub: user.id,
+          email: user.email,
+        },
+      );
+
+      await request(app.getHttpServer())
+        .get('/users/me')
+        .set('Authorization', `Bearer ${forged}`)
+        .expect(401);
+    });
+
+    it('token de una cuenta eliminada → 401', async () => {
+      usersService.findById.mockRejectedValue(
+        new NotFoundException('Usuario no encontrado'),
+      );
+
+      const res = await request(app.getHttpServer())
+        .get('/users/me')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(401);
+      expect(res.body.message).toBe('El usuario del token ya no existe');
+    });
+
     it('PATCH /users/me/password valida el body', async () => {
       await request(app.getHttpServer())
         .patch('/users/me/password')
@@ -226,6 +287,66 @@ describe('Auth y Users (e2e)', () => {
         .expect(400);
       expect(usersService.changePassword).not.toHaveBeenCalled();
     });
+  });
+});
+
+/** Flujo completo: registro → login → uso del token en un endpoint protegido. */
+describe('Flujo de autenticación (e2e)', () => {
+  let app: INestApplication<App>;
+
+  beforeAll(async () => {
+    app = await createApp();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    usersService.findById.mockResolvedValue(user);
+  });
+
+  it('el token devuelto por register y por login abre rutas protegidas', async () => {
+    const jwt = new JwtService({ secret: JWT_SECRET });
+    const sign = () => jwt.signAsync({ sub: user.id, email: user.email });
+    authService.register.mockImplementation(async () => ({
+      accessToken: await sign(),
+      user,
+    }));
+    authService.login.mockImplementation(async () => ({
+      accessToken: await sign(),
+      user,
+    }));
+    const credentials = { email: 'ana@example.com', password: 'Secreta123' };
+
+    const registered = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({ name: 'Ana', ...credentials })
+      .expect(201);
+    await request(app.getHttpServer())
+      .get('/users/me')
+      .set('Authorization', `Bearer ${registered.body.accessToken}`)
+      .expect(200);
+
+    const login = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send(credentials)
+      .expect(200);
+    const me = await request(app.getHttpServer())
+      .get('/users/me')
+      .set('Authorization', `Bearer ${login.body.accessToken}`)
+      .expect(200);
+    expect(me.body).toMatchObject({ id: 1, email: 'ana@example.com' });
+    expect(me.body).not.toHaveProperty('passwordHash');
+  });
+
+  it('login con body inválido → 400 sin llegar al servicio', async () => {
+    await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: 'no-es-email' })
+      .expect(400);
+    expect(authService.login).not.toHaveBeenCalled();
   });
 });
 
