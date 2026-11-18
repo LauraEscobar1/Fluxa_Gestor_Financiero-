@@ -62,6 +62,17 @@ Los PR siguientes lo implementan; no lo cambies sin avisar.
 - Contraseñas: `hashPassword` / `verifyPassword` de `src/common/password.ts` (bcrypt, cost 12); reglas de validación con `@IsValidPassword()`.
 - Tests e2e de rutas protegidas: registra `{ provide: APP_GUARD, useClass: JwtAuthGuard }` con `JwtModule.register({ secret })` y un `UsersService` simulado (ver `test/auth.e2e-spec.ts`).
 
+## Recursos del usuario (patrón estándar, ver `src/categories/`)
+
+- **Controller**: `@CurrentUser('id') userId: number` en cada handler y se pasa como **primer argumento** al servicio. Nunca se acepta `userId` en el body (`forbidNonWhitelisted` lo rechaza con 400).
+- **Service**: todos los métodos reciben `userId` y filtran por él (`findOneBy({ id, userId })`, `find({ where: { userId, ... } })`, `delete({ id, userId })`). Un recurso de otro usuario es indistinguible de uno inexistente: **404**, nunca 403.
+- **Unicidad**: se comprueba con `existsBy` para dar un 409 claro y además existe la restricción `@Unique('UQ_<tabla>_<campos>', [...])` en la entidad (el filtro global traduce la carrera a 409).
+- **Delete con FK RESTRICT**: el servicio captura `QueryFailedError` con SQLSTATE `23503` y lanza `ConflictException` con un mensaje específico; documéntalo con `@ApiResponse({ status: 409 })`.
+- **DTO de update con un solo campo editable**: usa `PickType` (campo obligatorio) en lugar de `PartialType`, para que no admita `{}` ni `null`. Con varios campos editables usa `PartialType`, y evita que `null` llegue al servicio (valida con `@IsNotEmpty`/`@ValidateIf`).
+- **Enums de dominio**: enum de TypeScript exportado (`src/<modulo>/enums/`) + columna `type: 'enum'` con `enumName` explícito. `CategoryType` (`INCOME`/`EXPENSE`) se reutiliza en Transaction.
+- **Transacciones de BD**: si un servicio debe escribir junto con otro, el método acepta un `EntityManager` opcional (`manager?.getRepository(X) ?? this.repo`) y quien orquesta usa `DataSource.transaction(...)`. Ejemplo: `AuthService.register` crea usuario y categorías por defecto de forma atómica.
+- **Módulos**: un módulo que exporta un servicio usado por otro se importa en una sola dirección (`AuthModule` → `CategoriesModule`); los módulos de recursos **no** importan `AuthModule`.
+
 ## Comandos útiles
 
 ```bash

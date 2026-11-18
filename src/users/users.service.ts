@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { MessageResponseDto } from '../common/dto/message-response.dto';
 import { hashPassword, verifyPassword } from '../common/password';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -32,14 +32,19 @@ export class UsersService {
 
   /**
    * Crea un usuario guardando el hash de su contraseña.
+   * Recibe opcionalmente un `EntityManager` para ejecutarse dentro de una
+   * transacción (p. ej. la del registro).
    * @throws ConflictException si el email ya está registrado.
    */
-  async create(dto: CreateUserDto): Promise<User> {
+  async create(dto: CreateUserDto, manager?: EntityManager): Promise<User> {
+    const repository = manager
+      ? manager.getRepository(User)
+      : this.usersRepository;
     const email = normalizeEmail(dto.email);
-    await this.assertEmailAvailable(email);
+    await this.assertEmailAvailable(email, repository);
 
-    const saved = await this.usersRepository.save(
-      this.usersRepository.create({
+    const saved = await repository.save(
+      repository.create({
         name: dto.name,
         email,
         passwordHash: await hashPassword(dto.password),
@@ -145,8 +150,11 @@ export class UsersService {
   }
 
   /** @throws ConflictException si el email (ya normalizado) está en uso. */
-  private async assertEmailAvailable(email: string): Promise<void> {
-    if (await this.usersRepository.existsBy({ email })) {
+  private async assertEmailAvailable(
+    email: string,
+    repository: Repository<User> = this.usersRepository,
+  ): Promise<void> {
+    if (await repository.existsBy({ email })) {
       throw new ConflictException('El email ya está registrado');
     }
   }
