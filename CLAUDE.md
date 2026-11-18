@@ -98,7 +98,7 @@ Los PR siguientes lo implementan; no lo cambies sin avisar.
 - `main.ts` activa `helmet` y CORS configurable con `CORS_ORIGIN` (lista separada por comas; sin definir: abierto en desarrollo y desactivado en producción). La lógica está en `src/common/config/runtime-config.ts`.
 - `GET /health` es público y hace `SELECT 1` (503 si falla).
 - Tras añadir o cambiar endpoints, regenera `docs/openapi.json` con `npm run docs:openapi` y actualiza la tabla de endpoints del `README.md`.
-- Hoy `/summary` no tiene rutas (el módulo `financial-summary` está vacío).
+- `/summary` (`src/financial-summary/`) agrega con `SUM` + `GROUP BY` sobre su propio repositorio de `Transaction` y reutiliza `BudgetsService.getStatusForMonth` y `SavingsGoalsService.getProgressSummary`. Helpers compartidos: `monthRange`/`yearRange` (`src/common/dates.ts`) y `round2`/`toAmount` (`src/common/numbers.ts`).
 
 ## Comandos útiles
 
