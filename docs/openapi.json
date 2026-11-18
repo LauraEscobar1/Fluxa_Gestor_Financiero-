@@ -1,0 +1,2369 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o contraseña débil"
+          },
+          "409": {
+            "description": "El email ya está registrado"
+          },
+          "429": {
+            "description": "Demasiadas peticiones"
+          }
+        },
+        "summary": "Registra un usuario y devuelve un token de acceso",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "401": {
+            "description": "Credenciales inválidas"
+          },
+          "429": {
+            "description": "Demasiadas peticiones"
+          }
+        },
+        "summary": "Inicia sesión y devuelve un token de acceso",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Usuario autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Devuelve el usuario del token",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/users/me": {
+      "get": {
+        "operationId": "UsersController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Perfil del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtiene el perfil propio",
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_updateProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perfil actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "409": {
+            "description": "El email ya está registrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualiza nombre y/o email del perfil propio",
+        "tags": [
+          "users"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_remove",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Cuenta eliminada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Elimina la cuenta propia y todos sus datos",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/me/password": {
+      "patch": {
+        "operationId": "UsersController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contraseña actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o la contraseña actual no coincide"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cambia la contraseña propia",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/categories": {
+      "get": {
+        "operationId": "CategoriesController_findAll",
+        "parameters": [
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filtra por tipo de categoría",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "income",
+                "expense"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de categorías",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Category"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Tipo inválido"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Lista las categorías propias (por nombre)",
+        "tags": [
+          "categories"
+        ]
+      },
+      "post": {
+        "operationId": "CategoriesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Categoría creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Category"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "409": {
+            "description": "Ya existe una categoría con ese nombre y tipo"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crea una categoría",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/categories/{id}": {
+      "get": {
+        "operationId": "CategoriesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Categoría",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Category"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Id inválido"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Categoría no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtiene una categoría propia",
+        "tags": [
+          "categories"
+        ]
+      },
+      "patch": {
+        "operationId": "CategoriesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Categoría actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Category"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Categoría no encontrada"
+          },
+          "409": {
+            "description": "Ya existe una categoría con ese nombre y tipo"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cambia el nombre de una categoría (el tipo no)",
+        "tags": [
+          "categories"
+        ]
+      },
+      "delete": {
+        "operationId": "CategoriesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Categoría eliminada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Id inválido"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Categoría no encontrada"
+          },
+          "409": {
+            "description": "La categoría tiene transacciones asociadas"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Elimina una categoría",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/budgets": {
+      "get": {
+        "operationId": "BudgetsController_findAll",
+        "parameters": [
+          {
+            "name": "month",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 12,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 2000,
+              "maximum": 2100,
+              "example": 2026,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Presupuestos con spent, remaining, percentUsed y status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BudgetResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Mes o año inválidos"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Presupuestos de un mes (por defecto el actual) con lo gastado, ordenados por categoría",
+        "tags": [
+          "budgets"
+        ]
+      },
+      "post": {
+        "operationId": "BudgetsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBudgetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Presupuesto creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o la categoría no es de gastos"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Categoría no encontrada"
+          },
+          "409": {
+            "description": "Ya existe un presupuesto para esa categoría en ese mes"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crea el presupuesto de una categoría de gastos",
+        "tags": [
+          "budgets"
+        ]
+      }
+    },
+    "/budgets/{id}": {
+      "get": {
+        "operationId": "BudgetsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Presupuesto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Id inválido"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Presupuesto no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtiene un presupuesto propio con lo gastado",
+        "tags": [
+          "budgets"
+        ]
+      },
+      "patch": {
+        "operationId": "BudgetsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBudgetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Presupuesto actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Presupuesto no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cambia el monto de un presupuesto",
+        "tags": [
+          "budgets"
+        ]
+      },
+      "delete": {
+        "operationId": "BudgetsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Presupuesto eliminado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Id inválido"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Presupuesto no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Elimina un presupuesto",
+        "tags": [
+          "budgets"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "API y base de datos disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "La base de datos no responde"
+          }
+        },
+        "summary": "Estado de la API y de la conexión a la base de datos",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/savings-goals": {
+      "get": {
+        "operationId": "SavingsGoalsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número de página",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Elementos por página",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filtra por estado calculado",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "completed"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metas con status, progressPercent y remaining",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedSavingsGoalsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Paginación o estado inválidos"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Lista paginada de metas (más recientes primero), con filtro opcional por estado",
+        "tags": [
+          "savings-goals"
+        ]
+      },
+      "post": {
+        "operationId": "SavingsGoalsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSavingsGoalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Meta creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavingsGoalResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o fecha objetivo en el pasado"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crea una meta de ahorro con saldo 0",
+        "tags": [
+          "savings-goals"
+        ]
+      }
+    },
+    "/savings-goals/{id}": {
+      "get": {
+        "operationId": "SavingsGoalsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Meta de ahorro",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavingsGoalResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Id inválido"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Meta no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtiene una meta propia",
+        "tags": [
+          "savings-goals"
+        ]
+      },
+      "patch": {
+        "operationId": "SavingsGoalsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSavingsGoalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Meta actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavingsGoalResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos o fecha objetivo en el pasado"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Meta no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cambia nombre, monto objetivo o fecha límite (el saldo solo cambia con depósitos y retiros)",
+        "tags": [
+          "savings-goals"
+        ]
+      },
+      "delete": {
+        "operationId": "SavingsGoalsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Meta eliminada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Id inválido"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Meta no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Elimina una meta y su historial",
+        "tags": [
+          "savings-goals"
+        ]
+      }
+    },
+    "/savings-goals/{id}/deposits": {
+      "post": {
+        "operationId": "SavingsGoalsController_deposit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMovementDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Movimiento registrado y meta actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavingsGoalMovementResultDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Monto inválido o saldo máximo superado"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Meta no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Deposita en una meta y registra el movimiento",
+        "tags": [
+          "savings-goals"
+        ]
+      }
+    },
+    "/savings-goals/{id}/withdrawals": {
+      "post": {
+        "operationId": "SavingsGoalsController_withdraw",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMovementDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Movimiento registrado y meta actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavingsGoalMovementResultDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Monto inválido o fondos insuficientes en la meta"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Meta no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Retira de una meta y registra el movimiento",
+        "tags": [
+          "savings-goals"
+        ]
+      }
+    },
+    "/savings-goals/{id}/movements": {
+      "get": {
+        "operationId": "SavingsGoalsController_findMovements",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número de página",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Elementos por página",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Movimientos de la meta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedSavingsGoalMovementsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Id o paginación inválidos"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Meta no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Historial paginado de movimientos (más reciente primero)",
+        "tags": [
+          "savings-goals"
+        ]
+      }
+    },
+    "/transactions": {
+      "get": {
+        "operationId": "TransactionsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número de página",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Elementos por página",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filtra por tipo",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "income",
+                "expense"
+              ]
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "description": "Filtra por categoría",
+            "schema": {
+              "example": 3,
+              "type": "number"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Fecha inicial incluida (YYYY-MM-DD)",
+            "schema": {
+              "format": "date",
+              "example": "2026-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Fecha final incluida (YYYY-MM-DD); no puede ser anterior a from",
+            "schema": {
+              "format": "date",
+              "example": "2026-01-31",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de transacciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedTransactionsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtros o paginación inválidos (p. ej. from > to)"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Lista paginada de transacciones propias (date DESC, id DESC)",
+        "tags": [
+          "transactions"
+        ]
+      },
+      "post": {
+        "operationId": "TransactionsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTransactionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transacción creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos, tipo distinto al de la categoría o fecha a más de un año"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Categoría no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Registra un ingreso o un gasto",
+        "tags": [
+          "transactions"
+        ]
+      }
+    },
+    "/transactions/{id}": {
+      "get": {
+        "operationId": "TransactionsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transacción",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Id inválido"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Transacción no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtiene una transacción propia",
+        "tags": [
+          "transactions"
+        ]
+      },
+      "patch": {
+        "operationId": "TransactionsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTransactionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transacción actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos, tipo distinto al de la categoría o fecha a más de un año"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Transacción o categoría no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualiza parcialmente una transacción",
+        "tags": [
+          "transactions"
+        ]
+      },
+      "delete": {
+        "operationId": "TransactionsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transacción eliminada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Id inválido"
+          },
+          "401": {
+            "description": "Token ausente, inválido o expirado"
+          },
+          "404": {
+            "description": "Transacción no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Elimina una transacción",
+        "tags": [
+          "transactions"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Fluxa API REST",
+    "description": "",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "auth",
+      "description": ""
+    },
+    {
+      "name": "users",
+      "description": ""
+    },
+    {
+      "name": "categories",
+      "description": ""
+    },
+    {
+      "name": "transactions",
+      "description": ""
+    },
+    {
+      "name": "budgets",
+      "description": ""
+    },
+    {
+      "name": "savings-goals",
+      "description": ""
+    },
+    {
+      "name": "summary",
+      "description": ""
+    },
+    {
+      "name": "health",
+      "description": ""
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ana Pérez",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "example": "ana@example.com",
+            "description": "Se guarda en minúsculas"
+          },
+          "password": {
+            "type": "string",
+            "example": "Secreta123",
+            "minLength": 8,
+            "maxLength": 72,
+            "description": "Al menos una letra y un número"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "password"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Ana Pérez",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "example": "ana@example.com"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-15T10:30:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-15T10:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "description": "JWT para enviar en `Authorization: Bearer <token>`"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
+        },
+        "required": [
+          "accessToken",
+          "user"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "ana@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "Secreta123"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ana Pérez",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "example": "ana@example.com",
+            "description": "Se guarda en minúsculas"
+          }
+        }
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "example": "Secreta123"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "NuevaClave456",
+            "minLength": 8,
+            "maxLength": 72,
+            "description": "Al menos una letra y un número"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "MessageResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Operación realizada correctamente"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Alimentación",
+            "maxLength": 100
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "example": "expense"
+          },
+          "userId": {
+            "type": "number",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-15T10:30:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-15T10:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "userId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Mascotas",
+            "maxLength": 100
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "example": "expense"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
+      },
+      "UpdateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Mascotas",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "BudgetCategoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Alimentación",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "BudgetResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 3
+          },
+          "category": {
+            "$ref": "#/components/schemas/BudgetCategoryDto"
+          },
+          "amount": {
+            "type": "number",
+            "example": 500000,
+            "description": "Límite del mes"
+          },
+          "month": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1,
+            "maximum": 12
+          },
+          "year": {
+            "type": "number",
+            "example": 2026
+          },
+          "spent": {
+            "type": "number",
+            "example": 410000,
+            "description": "Suma de los gastos de la categoría en ese mes (0 si no hay)"
+          },
+          "remaining": {
+            "type": "number",
+            "example": 90000,
+            "description": "amount - spent; negativo si se superó el límite"
+          },
+          "percentUsed": {
+            "type": "number",
+            "example": 82,
+            "description": "spent / amount * 100, redondeado a 2 decimales"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "warning",
+              "exceeded"
+            ],
+            "example": "warning",
+            "description": "\"warning\" si percentUsed >= 80; \"exceeded\" si spent > amount"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-15T10:30:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-15T10:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "categoryId",
+          "category",
+          "amount",
+          "month",
+          "year",
+          "spent",
+          "remaining",
+          "percentUsed",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateBudgetDto": {
+        "type": "object",
+        "properties": {
+          "categoryId": {
+            "type": "number",
+            "example": 3,
+            "description": "Categoría propia de tipo \"expense\""
+          },
+          "amount": {
+            "type": "number",
+            "example": 500000,
+            "description": "Límite del mes. Mayor que 0, con 2 decimales como máximo",
+            "maximum": 9999999999.99
+          },
+          "month": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1,
+            "maximum": 12
+          },
+          "year": {
+            "type": "number",
+            "example": 2026,
+            "minimum": 2000,
+            "maximum": 2100
+          }
+        },
+        "required": [
+          "categoryId",
+          "amount",
+          "month",
+          "year"
+        ]
+      },
+      "UpdateBudgetDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 500000,
+            "description": "Límite del mes. Mayor que 0, con 2 decimales como máximo",
+            "maximum": 9999999999.99
+          }
+        },
+        "required": [
+          "amount"
+        ]
+      },
+      "HealthResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "SavingsGoalResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Viaje a Cartagena",
+            "maxLength": 150
+          },
+          "targetAmount": {
+            "type": "number",
+            "example": 3000000
+          },
+          "currentAmount": {
+            "type": "number",
+            "example": 1200000,
+            "description": "Saldo acumulado; solo cambia con depósitos y retiros"
+          },
+          "targetDate": {
+            "type": "string",
+            "example": "2027-06-30",
+            "format": "date",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "completed"
+            ],
+            "example": "active",
+            "description": "\"completed\" si currentAmount >= targetAmount"
+          },
+          "progressPercent": {
+            "type": "number",
+            "example": 40,
+            "description": "currentAmount / targetAmount * 100 con 2 decimales y tope en 100 (solo vale 100 si está completada)"
+          },
+          "remaining": {
+            "type": "number",
+            "example": 1800000,
+            "description": "max(targetAmount - currentAmount, 0)"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-15T10:30:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-15T10:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "targetAmount",
+          "currentAmount",
+          "targetDate",
+          "status",
+          "progressPercent",
+          "remaining",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedSavingsGoalsDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SavingsGoalResponseDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 3
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          }
+        },
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit"
+        ]
+      },
+      "CreateSavingsGoalDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Viaje a Cartagena",
+            "maxLength": 150
+          },
+          "targetAmount": {
+            "type": "number",
+            "example": 3000000,
+            "description": "Monto a alcanzar. Mayor que 0, con 2 decimales como máximo",
+            "maximum": 9999999999.99
+          },
+          "targetDate": {
+            "type": "string",
+            "example": "2027-06-30",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha límite YYYY-MM-DD; no puede estar en el pasado"
+          }
+        },
+        "required": [
+          "name",
+          "targetAmount"
+        ]
+      },
+      "UpdateSavingsGoalDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Viaje a Cartagena",
+            "maxLength": 150
+          },
+          "targetAmount": {
+            "type": "number",
+            "example": 3000000,
+            "description": "Monto a alcanzar. Mayor que 0, con 2 decimales como máximo",
+            "maximum": 9999999999.99
+          },
+          "targetDate": {
+            "type": "string",
+            "example": "2027-06-30",
+            "format": "date",
+            "nullable": true,
+            "description": "Fecha límite YYYY-MM-DD; no puede estar en el pasado"
+          }
+        }
+      },
+      "CreateMovementDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 150000,
+            "description": "Mayor que 0, con 2 decimales como máximo",
+            "maximum": 9999999999.99
+          }
+        },
+        "required": [
+          "amount"
+        ]
+      },
+      "SavingsGoalMovementResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "goalId": {
+            "type": "number",
+            "example": 1
+          },
+          "amount": {
+            "type": "number",
+            "example": 150000,
+            "description": "Siempre positivo"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "deposit",
+              "withdrawal"
+            ],
+            "example": "deposit"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-15T10:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "goalId",
+          "amount",
+          "type",
+          "createdAt"
+        ]
+      },
+      "SavingsGoalMovementResultDto": {
+        "type": "object",
+        "properties": {
+          "movement": {
+            "$ref": "#/components/schemas/SavingsGoalMovementResponseDto"
+          },
+          "goal": {
+            "$ref": "#/components/schemas/SavingsGoalResponseDto"
+          }
+        },
+        "required": [
+          "movement",
+          "goal"
+        ]
+      },
+      "PaginatedSavingsGoalMovementsDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SavingsGoalMovementResponseDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 12
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          }
+        },
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit"
+        ]
+      },
+      "TransactionCategoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Alimentación",
+            "maxLength": 100
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "example": "expense"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type"
+        ]
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "amount": {
+            "type": "number",
+            "example": 125000.5,
+            "description": "Mayor que 0, 2 decimales"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "example": "expense"
+          },
+          "description": {
+            "type": "string",
+            "example": "Mercado de la semana",
+            "maxLength": 255,
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-01-15",
+            "format": "date"
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 3
+          },
+          "category": {
+            "$ref": "#/components/schemas/TransactionCategoryDto"
+          },
+          "userId": {
+            "type": "number",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-15T10:30:00.000Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-01-15T10:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "amount",
+          "type",
+          "description",
+          "date",
+          "categoryId",
+          "category",
+          "userId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PaginatedTransactionsDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": 42
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          }
+        },
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit"
+        ]
+      },
+      "CreateTransactionDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 125000.5,
+            "description": "Mayor que 0, con 2 decimales como máximo",
+            "maximum": 9999999999.99
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "example": "expense"
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 3,
+            "description": "Categoría propia del mismo tipo que la transacción"
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-01-15",
+            "format": "date",
+            "description": "YYYY-MM-DD; como máximo un año en el futuro"
+          },
+          "description": {
+            "type": "string",
+            "example": "Mercado de la semana",
+            "maxLength": 255,
+            "nullable": true
+          }
+        },
+        "required": [
+          "amount",
+          "type",
+          "categoryId",
+          "date"
+        ]
+      },
+      "UpdateTransactionDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "example": 125000.5,
+            "description": "Mayor que 0, con 2 decimales como máximo",
+            "maximum": 9999999999.99
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "income",
+              "expense"
+            ],
+            "example": "expense"
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 3,
+            "description": "Categoría propia del mismo tipo que la transacción"
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-01-15",
+            "format": "date",
+            "description": "YYYY-MM-DD; como máximo un año en el futuro"
+          },
+          "description": {
+            "type": "string",
+            "example": "Mercado de la semana",
+            "maxLength": 255,
+            "nullable": true
+          }
+        }
+      }
+    }
+  }
+}
