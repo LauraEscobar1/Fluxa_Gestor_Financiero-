@@ -8,7 +8,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CategoriesService } from '../categories/categories.service';
 import { CategoryType } from '../categories/enums/category-type.enum';
+import { monthRange } from '../common/dates';
 import { MessageResponseDto } from '../common/dto/message-response.dto';
+import { round2 } from '../common/numbers';
 import { Transaction } from '../transactions/entities/transaction.entity';
 import { BudgetResponseDto } from './dto/budget-response.dto';
 import { CreateBudgetDto } from './dto/create-budget.dto';
@@ -19,24 +21,6 @@ import { BudgetStatus } from './enums/budget-status.enum';
 
 /** Porcentaje de uso desde el que un presupuesto pasa a "warning". */
 const WARNING_THRESHOLD = 80;
-
-/** Redondea a 2 decimales (evita ruido de coma flotante como 0.1 + 0.2). */
-const round2 = (value: number): number =>
-  Math.round((value + Number.EPSILON) * 100) / 100;
-
-/** Primer día del mes y del mes siguiente como `YYYY-MM-DD` (para comparar texto). */
-function monthRange(
-  month: number,
-  year: number,
-): { start: string; end: string } {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const nextYear = month === 12 ? year + 1 : year;
-  const nextMonth = month === 12 ? 1 : month + 1;
-  return {
-    start: `${year}-${pad(month)}-01`,
-    end: `${nextYear}-${pad(nextMonth)}-01`,
-  };
-}
 
 /**
  * Presupuestos mensuales del usuario. Todos los métodos reciben `userId` y
