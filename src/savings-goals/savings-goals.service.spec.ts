@@ -15,6 +15,8 @@ describe('SavingsGoalsService', () => {
   const TODAY = '2026-03-15';
 
   const listQb = {
+    select: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
@@ -22,6 +24,7 @@ describe('SavingsGoalsService', () => {
     skip: jest.fn().mockReturnThis(),
     take: jest.fn().mockReturnThis(),
     getManyAndCount: jest.fn(),
+    getRawOne: jest.fn(),
   };
   const goalsRepository = {
     createQueryBuilder: jest.fn(() => listQb),
@@ -92,7 +95,7 @@ describe('SavingsGoalsService', () => {
     jest.clearAllMocks();
     for (const qb of [listQb, updateQb]) {
       for (const [name, fn] of Object.entries(qb)) {
-        if (name !== 'getManyAndCount' && name !== 'execute') {
+        if (!name.startsWith('get') && name !== 'execute') {
           fn.mockReturnThis();
         }
       }
@@ -252,6 +255,49 @@ describe('SavingsGoalsService', () => {
       await service.findAll(USER_ID, { page: 1, limit: 20, status });
 
       expect(listQb.andWhere).toHaveBeenCalledWith(condition);
+    });
+  });
+
+  describe('getProgressSummary', () => {
+    it('agrega en SQL las metas del usuario y convierte los strings de Postgres', async () => {
+      listQb.getRawOne.mockResolvedValue({
+        totalSaved: '3800000.00',
+        totalTarget: '6500000.00',
+        active: '1',
+        completed: '1',
+      });
+
+      const result = await service.getProgressSummary(USER_ID);
+
+      expect(result).toEqual({
+        totalSaved: 3800000,
+        totalTarget: 6500000,
+        active: 1,
+        completed: 1,
+      });
+      expect(listQb.where).toHaveBeenCalledWith('goal.userId = :userId', {
+        userId: USER_ID,
+      });
+      expect(listQb.addSelect).toHaveBeenCalledWith(
+        'COUNT(*) FILTER (WHERE goal.currentAmount >= goal.targetAmount)',
+        'completed',
+      );
+    });
+
+    it('sin metas devuelve ceros', async () => {
+      listQb.getRawOne.mockResolvedValue({
+        totalSaved: '0',
+        totalTarget: '0',
+        active: '0',
+        completed: '0',
+      });
+
+      await expect(service.getProgressSummary(USER_ID)).resolves.toEqual({
+        totalSaved: 0,
+        totalTarget: 0,
+        active: 0,
+        completed: 0,
+      });
     });
   });
 
