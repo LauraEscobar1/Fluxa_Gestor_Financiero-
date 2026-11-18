@@ -37,7 +37,8 @@ Un módulo por carpeta (kebab-case): `dto/`, `entities/`, `x.controller.ts`, `x.
 - Los scripts de Jest usan `--experimental-vm-modules` porque los paquetes de Nest 12 son ESM; no los llames con `npx jest` directamente.
 
 ### Base de datos
-- **NO** se crean migraciones en los PR de funcionalidades (en desarrollo `DB_SYNCHRONIZE=true`). La migración inicial la genera el último PR.
+- La migración inicial (`InitialSchema`) ya existe en `src/database/migrations/`. Si un cambio toca el esquema, genera una migración nueva (`npm run migration:generate -- src/database/migrations/Nombre`) y revisa el SQL: si dos entidades comparten un enum, TypeORM lo crea dos veces y hay que dejarlo una sola. En desarrollo sigue siendo válido `DB_SYNCHRONIZE=true`; con `NODE_ENV=production` la app se niega a arrancar si está activo.
+- `npm run seed` carga datos demo (`demo@fluxa.com` / `Demo1234`): idempotente y bloqueado en producción. Si cambias entidades, mantén el seed (`src/database/seeds/`) coherente.
 - Configuración global en `src/main.ts` (filtro, `ValidationPipe`, Swagger en `/api`, sin prefijo global) y `src/app.module.ts` (Config, TypeORM, Throttler).
 
 ## Contrato de dominio
@@ -57,7 +58,7 @@ Los PR siguientes lo implementan; no lo cambies sin avisar.
 
 - `JwtAuthGuard` es **global** (`APP_GUARD` en `AuthModule`): toda ruta exige `Authorization: Bearer <token>` sin hacer nada. No añadas `@UseGuards` en los controladores.
 - Usuario actual: `@CurrentUser()` (`src/auth/decorators/current-user.decorator.ts`) devuelve el `User` sin `passwordHash`; `@CurrentUser('id') userId: number` devuelve solo el id. Pásalo al servicio para filtrar por `userId`.
-- `@Public()` (`src/auth/decorators/public.decorator.ts`) solo en rutas que deben funcionar sin sesión (hoy: `POST /auth/register` y `POST /auth/login`). Ningún endpoint de datos del usuario es público.
+- `@Public()` (`src/auth/decorators/public.decorator.ts`) solo en rutas que deben funcionar sin sesión (hoy: `POST /auth/register`, `POST /auth/login` y `GET /health`). Ningún endpoint de datos del usuario es público.
 - Controladores protegidos: `@ApiBearerAuth()` y `@ApiResponse({ status: 401 })`.
 - Contraseñas: `hashPassword` / `verifyPassword` de `src/common/password.ts` (bcrypt, cost 12); reglas de validación con `@IsValidPassword()`.
 - Tests e2e de rutas protegidas: registra `{ provide: APP_GUARD, useClass: JwtAuthGuard }` con `JwtModule.register({ secret })` y un `UsersService` simulado (ver `test/auth.e2e-spec.ts`).
@@ -91,6 +92,13 @@ Los PR siguientes lo implementan; no lo cambies sin avisar.
 - `status`: `exceeded` si `spent > amount`; si no, `warning` si `percentUsed >= 80` (ya redondeado a 2 decimales); si no, `ok`. `remaining` puede ser negativo.
 - `BudgetsService.getStatusForMonth(userId, month, year)` es el método público para otros módulos (resumen).
 - Mes y año por defecto: los actuales en UTC.
+
+## Seguridad y documentación
+
+- `main.ts` activa `helmet` y CORS configurable con `CORS_ORIGIN` (lista separada por comas; sin definir: abierto en desarrollo y desactivado en producción). La lógica está en `src/common/config/runtime-config.ts`.
+- `GET /health` es público y hace `SELECT 1` (503 si falla).
+- Tras añadir o cambiar endpoints, regenera `docs/openapi.json` con `npm run docs:openapi` y actualiza la tabla de endpoints del `README.md`.
+- Hoy `/summary` no tiene rutas (el módulo `financial-summary` está vacío).
 
 ## Comandos útiles
 
