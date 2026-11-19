@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, QueryFailedError, Repository } from 'typeorm';
 import { toDateOnly } from '../common/dates';
 import { MessageResponseDto } from '../common/dto/message-response.dto';
+import { round2, toAmount } from '../common/numbers';
 import {
   Paginated,
   PaginationQueryDto,
@@ -21,6 +22,7 @@ import {
   SavingsGoalMovementResultDto,
   SavingsGoalResponseDto,
 } from './dto/savings-goal-response.dto';
+import { SavingsGoalsProgressDto } from './dto/savings-goals-progress.dto';
 import { UpdateSavingsGoalDto } from './dto/update-savings-goal.dto';
 import { SavingsGoalMovement } from './entities/savings-goal-movement.entity';
 import { SavingsGoal } from './entities/savings-goal.entity';
@@ -35,10 +37,6 @@ const NUMERIC_VALUE_OUT_OF_RANGE = '22003';
 
 /** Mayor porcentaje que se muestra mientras la meta sigue activa. */
 const MAX_ACTIVE_PERCENT = 99.99;
-
-/** Redondea a 2 decimales (evita ruido de coma flotante como 0.1 + 0.2). */
-const round2 = (value: number): number =>
-  Math.round((value + Number.EPSILON) * 100) / 100;
 
 /**
  * Metas de ahorro del usuario con depósitos, retiros e historial. Todos los
@@ -86,6 +84,39 @@ export class SavingsGoalsService {
       total,
       query,
     );
+  }
+
+  /**
+   * Progreso agregado de las metas del usuario (lo usa el resumen). Una sola
+   * consulta con `SUM` y `COUNT ... FILTER`; el estado se deriva del saldo igual
+   * que en `toResponse`. Sin metas devuelve ceros.
+   */
+  async getProgressSummary(userId: number): Promise<SavingsGoalsProgressDto> {
+    const row = await this.goalsRepository
+      .createQueryBuilder('goal')
+      .select('COALESCE(SUM(goal.currentAmount), 0)', 'totalSaved')
+      .addSelect('COALESCE(SUM(goal.targetAmount), 0)', 'totalTarget')
+      .addSelect(
+        'COUNT(*) FILTER (WHERE goal.currentAmount < goal.targetAmount)',
+        'active',
+      )
+      .addSelect(
+        'COUNT(*) FILTER (WHERE goal.currentAmount >= goal.targetAmount)',
+        'completed',
+      )
+      .where('goal.userId = :userId', { userId })
+      .getRawOne<{
+        totalSaved: string | null;
+        totalTarget: string | null;
+        active: string | null;
+        completed: string | null;
+      }>();
+    return {
+      totalSaved: toAmount(row?.totalSaved),
+      totalTarget: toAmount(row?.totalTarget),
+      active: Number(row?.active ?? 0),
+      completed: Number(row?.completed ?? 0),
+    };
   }
 
   /**
