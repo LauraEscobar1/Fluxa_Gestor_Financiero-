@@ -3,7 +3,7 @@ import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
 import { MAX_YEAR, MIN_YEAR } from './create-budget.dto';
 
-/** Query de `GET /budgets`: mes y año (por defecto, los actuales en UTC). */
+/** Query de `GET /budgets`: mes y año (por defecto, los actuales en America/Bogota). */
 export class ListBudgetsQueryDto {
   @ApiPropertyOptional({ example: 1, minimum: 1, maximum: 12 })
   @IsOptional()

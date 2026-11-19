@@ -4,13 +4,13 @@ import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
 import { MAX_YEAR, MIN_YEAR } from '../../budgets/dto/create-budget.dto';
 import { CategoryType } from '../../categories/enums/category-type.enum';
 
-/** Query de `GET /summary/monthly`: año (por defecto, el actual en UTC). */
+/** Query de `GET /summary/monthly`: año (por defecto, el actual en America/Bogota). */
 export class SummaryYearQueryDto {
   @ApiPropertyOptional({
     example: 2026,
     minimum: MIN_YEAR,
     maximum: MAX_YEAR,
-    description: 'Por defecto, el año actual (UTC)',
+    description: 'Por defecto, el año actual (America/Bogota)',
   })
   @IsOptional()
   @Type(() => Number)
@@ -24,13 +24,13 @@ export class SummaryYearQueryDto {
   year?: number;
 }
 
-/** Query de `GET /summary`: mes y año (por defecto, los actuales en UTC). */
+/** Query de `GET /summary`: mes y año (por defecto, los actuales en America/Bogota). */
 export class SummaryMonthQueryDto extends SummaryYearQueryDto {
   @ApiPropertyOptional({
     example: 1,
     minimum: 1,
     maximum: 12,
-    description: 'Por defecto, el mes actual (UTC)',
+    description: 'Por defecto, el mes actual (America/Bogota)',
   })
   @IsOptional()
   @Type(() => Number)

@@ -197,8 +197,23 @@ describe('FinancialSummaryService', () => {
       expect(result.savingsGoals).toEqual(progress);
     });
 
-    it('sin mes ni año usa los actuales en UTC', async () => {
-      jest.useFakeTimers({ now: new Date('2026-11-30T23:30:00Z') });
+    it('sin mes ni año usa los actuales en America/Bogota', async () => {
+      jest.useFakeTimers({ now: new Date('2026-11-15T12:00:00Z') });
+
+      const result = await service.getSummary(USER_ID);
+
+      expect(result).toMatchObject({ month: 11, year: 2026 });
+      expect(budgetsService.getStatusForMonth).toHaveBeenCalledWith(
+        USER_ID,
+        11,
+        2026,
+      );
+      expectScopedQuery('2026-11-01', '2026-12-01');
+    });
+
+    it('a las 8 p. m. del 30 de noviembre en Colombia sigue siendo noviembre', async () => {
+      // 2026-12-01T01:00Z ya es diciembre en UTC.
+      jest.useFakeTimers({ now: new Date('2026-12-01T01:00:00Z') });
 
       const result = await service.getSummary(USER_ID);
 
@@ -365,8 +380,18 @@ describe('FinancialSummaryService', () => {
       expect(result.totals).toEqual({ income: 0, expenses: 0, balance: 0 });
     });
 
-    it('sin año usa el actual en UTC', async () => {
+    it('sin año usa el actual en America/Bogota', async () => {
       jest.useFakeTimers({ now: new Date('2026-12-31T23:30:00Z') });
+
+      const result = await service.getMonthly(USER_ID);
+
+      expect(result.year).toBe(2026);
+      expectScopedQuery('2026-01-01', '2027-01-01');
+    });
+
+    it('a las 8 p. m. del 31 de diciembre en Colombia sigue siendo ese año', async () => {
+      // 2027-01-01T01:00Z ya es 2027 en UTC.
+      jest.useFakeTimers({ now: new Date('2027-01-01T01:00:00Z') });
 
       const result = await service.getMonthly(USER_ID);
 
