@@ -1,11 +1,11 @@
-# CLAUDE.md — Fluxa API
+# Convenciones — Fluxa API
 
-API REST de gestión financiera personal (NestJS 12 + TypeScript + TypeORM + PostgreSQL). Lee este archivo antes de implementar cualquier funcionalidad.
+API REST de gestión financiera personal (NestJS 12 + TypeScript + TypeORM + PostgreSQL). Este documento recoge las convenciones del proyecto y el contrato de dominio; léelo antes de implementar cualquier funcionalidad.
 
 ## Reglas de trabajo
 
-- El control de versiones (git/GitHub) lo manejan las personas del equipo: **no ejecutes comandos de git ni de GitHub**.
-- No cambies versiones de Nest, TypeScript o Jest, y no ejecutes `npm audit fix`, sin autorización.
+- El control de versiones (git/GitHub) lo maneja el equipo; coordina ramas, commits y PR con las demás personas.
+- No cambies versiones de Nest, TypeScript o Jest, ni ejecutes `npm audit fix`, sin acuerdo del equipo.
 - No cambies el contrato de dominio de abajo sin avisar.
 
 ## Convenciones
@@ -43,7 +43,7 @@ Un módulo por carpeta (kebab-case): `dto/`, `entities/`, `x.controller.ts`, `x.
 
 ## Contrato de dominio
 
-Los PR siguientes lo implementan; no lo cambies sin avisar.
+No lo cambies sin avisar.
 
 - Todo recurso (salvo User) pertenece a un usuario mediante `userId` (FK a users, `onDelete: 'CASCADE'`). Toda consulta filtra por el `userId` del usuario autenticado; si el recurso es de otro usuario, responde 404.
 - **User**: id, name, email (único, en minúsculas), passwordHash (`select: false`, nunca se devuelve), createdAt, updatedAt.
@@ -91,7 +91,7 @@ Los PR siguientes lo implementan; no lo cambies sin avisar.
 - **Sin N+1**: lo gastado de todos los presupuestos sale de UNA consulta agregada (`SUM` + `GROUP BY categoryId`) con `transaction.date >= primer día del mes` y `< primer día del siguiente` (comparación de texto `YYYY-MM-DD`). `BudgetsModule` usa `TypeOrmModule.forFeature([Transaction])`, no `TransactionsService`.
 - `status`: `exceeded` si `spent > amount`; si no, `warning` si `percentUsed >= 80` (ya redondeado a 2 decimales); si no, `ok`. `remaining` puede ser negativo.
 - `BudgetsService.getStatusForMonth(userId, month, year)` es el método público para otros módulos (resumen).
-- Mes y año por defecto: los actuales en UTC.
+- Mes y año por defecto: los actuales en `America/Bogota` (`currentMonthYear()` de `src/common/dates.ts`, con `Intl.DateTimeFormat`, sin dependencias). Los límites del mes son texto `YYYY-MM-DD` y no dependen de la zona.
 
 ## Seguridad y documentación
 

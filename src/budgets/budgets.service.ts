@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CategoriesService } from '../categories/categories.service';
 import { CategoryType } from '../categories/enums/category-type.enum';
-import { monthRange } from '../common/dates';
+import { currentMonthYear, monthRange } from '../common/dates';
 import { MessageResponseDto } from '../common/dto/message-response.dto';
 import { round2 } from '../common/numbers';
 import { Transaction } from '../transactions/entities/transaction.entity';
@@ -39,18 +39,18 @@ export class BudgetsService {
   ) {}
 
   /**
-   * Lista los presupuestos de un mes (por defecto el actual, en UTC) ordenados
+   * Lista los presupuestos de un mes (por defecto el actual, en America/Bogota) ordenados
    * por nombre de categoría. Es lo que lista `GET /budgets`.
    */
   findAll(
     userId: number,
     query: ListBudgetsQueryDto = {},
   ): Promise<BudgetResponseDto[]> {
-    const now = new Date();
+    const current = currentMonthYear();
     return this.getStatusForMonth(
       userId,
-      query.month ?? now.getUTCMonth() + 1,
-      query.year ?? now.getUTCFullYear(),
+      query.month ?? current.month,
+      query.year ?? current.year,
     );
   }
 

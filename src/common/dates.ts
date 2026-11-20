@@ -79,6 +79,31 @@ export function IsOnOrAfterDate(
   );
 }
 
+/** Zona horaria con la que se calculan "el mes actual" y "el año actual". */
+export const APP_TIME_ZONE = 'America/Bogota';
+
+const MONTH_YEAR_FORMAT = new Intl.DateTimeFormat('en-US', {
+  timeZone: APP_TIME_ZONE,
+  month: 'numeric',
+  year: 'numeric',
+});
+
+/**
+ * Mes (1-12) y año de `now` en la zona `America/Bogota` (UTC-5, sin horario de
+ * verano). Se usa para el mes y año por defecto: a las 8 p. m. del último día
+ * del mes en Colombia ya es el mes siguiente en UTC, pero aquí sigue siendo el
+ * mes en curso.
+ */
+export function currentMonthYear(now: Date = new Date()): {
+  month: number;
+  year: number;
+} {
+  const parts = MONTH_YEAR_FORMAT.formatToParts(now);
+  const value = (type: string) =>
+    Number(parts.find((part) => part.type === type)?.value);
+  return { month: value('month'), year: value('year') };
+}
+
 /**
  * Primer día del mes y primer día del mes siguiente como `YYYY-MM-DD`. Sirve
  * para filtrar columnas `date` con `>= start` y `< end` (comparación de texto

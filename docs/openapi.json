@@ -754,7 +754,7 @@
             "name": "year",
             "required": false,
             "in": "query",
-            "description": "Por defecto, el año actual (UTC)",
+            "description": "Por defecto, el año actual (America/Bogota)",
             "schema": {
               "minimum": 2000,
               "maximum": 2100,
@@ -766,7 +766,7 @@
             "name": "month",
             "required": false,
             "in": "query",
-            "description": "Por defecto, el mes actual (UTC)",
+            "description": "Por defecto, el mes actual (America/Bogota)",
             "schema": {
               "minimum": 1,
               "maximum": 12,
@@ -812,7 +812,7 @@
             "name": "year",
             "required": false,
             "in": "query",
-            "description": "Por defecto, el año actual (UTC)",
+            "description": "Por defecto, el año actual (America/Bogota)",
             "schema": {
               "minimum": 2000,
               "maximum": 2100,
@@ -824,7 +824,7 @@
             "name": "month",
             "required": false,
             "in": "query",
-            "description": "Por defecto, el mes actual (UTC)",
+            "description": "Por defecto, el mes actual (America/Bogota)",
             "schema": {
               "minimum": 1,
               "maximum": 12,
@@ -884,7 +884,7 @@
             "name": "year",
             "required": false,
             "in": "query",
-            "description": "Por defecto, el año actual (UTC)",
+            "description": "Por defecto, el año actual (America/Bogota)",
             "schema": {
               "minimum": 2000,
               "maximum": 2100,

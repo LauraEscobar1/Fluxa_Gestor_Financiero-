@@ -4,7 +4,7 @@ import { Repository, SelectQueryBuilder } from 'typeorm';
 import { BudgetsService } from '../budgets/budgets.service';
 import { BudgetStatus } from '../budgets/enums/budget-status.enum';
 import { CategoryType } from '../categories/enums/category-type.enum';
-import { monthRange, yearRange } from '../common/dates';
+import { currentMonthYear, monthRange, yearRange } from '../common/dates';
 import { round2, toAmount } from '../common/numbers';
 import { SavingsGoalsService } from '../savings-goals/savings-goals.service';
 import { Transaction } from '../transactions/entities/transaction.entity';
@@ -65,7 +65,7 @@ function totalsOf(income: number, expenses: number): MonthlyTotalsDto {
  * - El estado de los presupuestos sale de `BudgetsService.getStatusForMonth`
  *   y el progreso de las metas de `SavingsGoalsService.getProgressSummary`,
  *   para no duplicar sus reglas.
- * - Mes y año por defecto: los actuales en UTC.
+ * - Mes y año por defecto: los actuales en America/Bogota.
  */
 @Injectable()
 export class FinancialSummaryService {
@@ -178,7 +178,7 @@ export class FinancialSummaryService {
     userId: number,
     query: SummaryYearQueryDto = {},
   ): Promise<MonthlySummaryResponseDto> {
-    const year = query.year ?? new Date().getUTCFullYear();
+    const year = query.year ?? currentMonthYear().year;
     const { start, end } = yearRange(year);
     const monthExpression = 'CAST(EXTRACT(MONTH FROM transaction.date) AS int)';
 
@@ -214,15 +214,15 @@ export class FinancialSummaryService {
     };
   }
 
-  /** Mes y año pedidos o, si faltan, los actuales en UTC. */
+  /** Mes y año pedidos o, si faltan, los actuales en America/Bogota. */
   private resolveMonth(query: SummaryMonthQueryDto): {
     month: number;
     year: number;
   } {
-    const now = new Date();
+    const current = currentMonthYear();
     return {
-      month: query.month ?? now.getUTCMonth() + 1,
-      year: query.year ?? now.getUTCFullYear(),
+      month: query.month ?? current.month,
+      year: query.year ?? current.year,
     };
   }
 

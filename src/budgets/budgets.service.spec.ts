@@ -299,6 +299,26 @@ describe('BudgetsService', () => {
       expect(transactionsRepository.createQueryBuilder).not.toHaveBeenCalled();
     });
 
+    it('findAll usa el mes de Colombia en el borde de fin de mes (8 p. m. del 30 de noviembre)', async () => {
+      // 2026-12-01T01:00Z ya es diciembre en UTC, pero en Bogotá son las 8 p. m. del 30 de noviembre.
+      jest.useFakeTimers({ now: new Date('2026-12-01T01:00:00Z') });
+      try {
+        budgetQb.getMany.mockResolvedValue([]);
+
+        await service.findAll(USER_ID, {});
+
+        expect(budgetQb.andWhere).toHaveBeenCalledWith(
+          'budget.month = :month',
+          { month: 11 },
+        );
+        expect(budgetQb.andWhere).toHaveBeenCalledWith('budget.year = :year', {
+          year: 2026,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it('findAll usa el mes y año actuales por defecto', async () => {
       jest.useFakeTimers({ now: new Date('2026-03-15T12:00:00Z') });
       try {

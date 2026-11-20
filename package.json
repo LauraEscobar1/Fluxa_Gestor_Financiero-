@@ -2,7 +2,7 @@
   "name": "fluxa-api",
   "version": "0.0.1",
   "description": "API REST de gestión financiera personal (Fluxa) construida con NestJS y PostgreSQL",
-  "author": "",
+  "author": "Equipo Fluxa",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
